@@ -1,0 +1,15 @@
+name = "busy-qbhouse"
+main = "src/worker.js"
+compatibility_date = "2023-10-01"
+node_compat = true
+workers_dev = true
+
+browser = { binding = "MYBROWSER" }
+
+[triggers]
+crons = [ "*/5 * * * * " ]
+
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "QBHOUSE"
+database_id = "xxx"
