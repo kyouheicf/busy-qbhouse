@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>QBハウスxxx店の待ち人数推移</title>
+    <!-- Google Chartsのロード -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            var selectedDate = document.getElementById("dateDropdown").value;
+            // 選択された日付を使用して処理を行う
+            console.log("選択された日付: " + selectedDate);
+            // ここに選択された日付に対する処理を追加
+
+            // AJAXリクエスト
+            $.ajax({
+                url: `https://busy-qbhouse.khayama.workers.dev?date=${selectedDate}`,
+                method: 'GET',
+                dataType: 'json',
+                success: function (json) {
+                    const array = json.map(elm => {
+                        return [[parseInt(elm.hour), parseInt(elm.min), parseInt("00")], parseInt(elm.num)]
+                    })
+                    //console.log(`array === ${array}`)
+                    var data = new google.visualization.DataTable();
+                    data.addColumn('timeofday', '時間');
+                    data.addColumn('number', '待ち人数');
+                    data.addRows(array);
+
+                    var options = {
+                        title: 'QBハウスxxx店の待ち人数推移',
+                        width: 800,
+                        height: 400,
+                        hAxis: {
+                            title: '時間',
+                            format: 'HH:mm', // 24時間表記
+                            viewWindow: {
+                                min: [9, 0, 0], // 横軸の最小値 (09:00)
+                                max: [20, 0, 0] // 横軸の最大値 (20:00)
+                            },
+                        },
+                        vAxis: {
+                            title: '待ち人数',
+                            minValue: 0, // 縦軸の最小値
+                            maxValue: 10 // 縦軸の最大値
+                        },
+                        colors: ['blue'], // 線の色 (洒落た感じに調整可能)
+                        legend: 'none'
+                    };
+
+                    var chart = new google.visualization.LineChart(document.getElementById('lineChart'));
+
+                    chart.draw(data, options);
+                },
+                error: function (error) {
+                    console.error('データの取得に失敗しました:', error);
+                }
+            });
+        }
+        function padTwoDigits(num) {
+            return num.toString().padStart(2, "0");
+        }
+
+        function dateInYyyyMmDdHhMmSs(date, dateDiveder = "-") {
+            // :::: Exmple Usage ::::
+            // The function takes a Date object as a parameter and formats the date as YYYY-MM-DD hh:mm:ss.
+            // 👇️ 2023-04-11 16:21:23 (yyyy-mm-dd hh:mm:ss)
+            //console.log(dateInYyyyMmDdHhMmSs(new Date()));
+
+            //  👇️️ 2025-05-04 05:24:07 (yyyy-mm-dd hh:mm:ss)
+            // console.log(dateInYyyyMmDdHhMmSs(new Date('May 04, 2025 05:24:07')));
+            // Date divider
+            // 👇️ 01/04/2023 10:20:07 (MM/DD/YYYY hh:mm:ss)
+            // console.log(dateInYyyyMmDdHhMmSs(new Date(), "/"));
+            return (
+                [
+                    date.getFullYear(),
+                    padTwoDigits(date.getMonth() + 1),
+                    padTwoDigits(date.getDate()),
+                ].join(dateDiveder) +
+                " " +
+                [
+                    padTwoDigits(date.getHours()),
+                    padTwoDigits(date.getMinutes()),
+                    '00',
+                ].join(":")
+            );
+        }
+        // ドロップダウンリストに日付を動的に追加する関数
+        function populateDateDropdown() {
+            var dropdown = document.getElementById("dateDropdown");
+            var currentDate = new Date(Date.now() + ((new Date().getTimezoneOffset() + (9 * 60)) * 60 * 1000));
+
+            for (var i = 0; i < 14; i++) {
+                var date = new Date(currentDate);;
+                console.log(`JST Date === ${dateInYyyyMmDdHhMmSs(currentDate)}`)
+                date.setDate(currentDate.getDate() - i);
+                var formattedDate = dateInYyyyMmDdHhMmSs(date).slice(0, 10); // YYYY-MM-DD 形式に変換
+                var option = document.createElement("option");
+                option.value = formattedDate;
+                option.textContent = formattedDate;
+                dropdown.appendChild(option);
+            }
+        }
+
+        // ページ読み込み時にドロップダウンリストを生成
+        window.onload = function () {
+            populateDateDropdown();
+        };
+    </script>
+</head>
+
+<body>
+    <div style="text-align: center;">
+        <h1>QBハウスxxx店の待ち人数推移</h1>
+    </div>
+    <div style="text-align: center;">
+        <h4>日付を選択</h4>
+        <select id="dateDropdown" onchange="drawChart()"></select>
+    </div>
+    <div style="width: 700px; margin: 0 auto;">
+        <div id="lineChart"></div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,11 @@
+.dev.vars
+node_modules/
+.DS_Store
+img/.DS_Store
+src/受付終了_files/
+src/現在の待ち人数_files/
+src/開店前_files/
+.wrangler/
+gsgccr3dvtlsca2020.crt
+.prettierrc
+wrangler.toml
